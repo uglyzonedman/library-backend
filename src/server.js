@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import cors from 'fastify-cors';
 import db from './database.js';
+import files from './routes/files.js';
 import response from './utils/response.js';
 
 const server = fastify();
@@ -28,6 +29,8 @@ server.register(
   },
   { prefix: '/api' }
 );
+
+server.register(files, { prefix: '/api/files' });
 
 server.listen(process.env.PORT, process.env.HOSTNAME, (error, address) => {
   if (!error) {

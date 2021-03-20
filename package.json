@@ -9,6 +9,7 @@
     "dotenv": "^8.2.0",
     "fastify": "^3.14.0",
     "fastify-cors": "^5.2.0",
+    "mime-types": "^2.1.29",
     "sqlite": "^4.0.19",
     "sqlite3": "^5.0.2"
   },

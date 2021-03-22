@@ -20,6 +20,8 @@ server.register(cors);
 
 server.register(
   (instance, options, done) => {
+    instance.register(files, { prefix: '/files' });
+
     instance.get('/', async (request, reply) => {
       const data = await db.all('SELECT * from test');
       reply.send(response(data));
@@ -29,8 +31,6 @@ server.register(
   },
   { prefix: '/api' }
 );
-
-server.register(files, { prefix: '/api/files' });
 
 server.listen(process.env.PORT, process.env.HOSTNAME, (error, address) => {
   if (!error) {

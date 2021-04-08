@@ -8,6 +8,7 @@ import book from './routes/book.js';
 import response from './utils/response.js';
 
 const server = fastify();
+
 server.setErrorHandler((error, request, reply) => {
   if (error instanceof ValidationError) {
     const errors = Object.fromEntries(error.inner.map(error => [error.path, error.message]));
@@ -27,6 +28,7 @@ server.setErrorHandler((error, request, reply) => {
     );
   }
 });
+
 server.setNotFoundHandler(
   {
     preValidation: (request, reply, done) => done(),

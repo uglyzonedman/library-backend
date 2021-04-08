@@ -1,27 +1,14 @@
-import * as yup from 'yup';
 import db from '../database.js';
+import { signinSchema, signupSchema } from '../validations/user.js';
 import response from '../utils/response.js';
 
 const SESSION_DURATION = parseInt(process.env.SESSION_DURATION);
-const signupSchema = yup.object().shape({
-  name: yup.string().required('Обязательное поле имя'),
-  surname: yup.string().required('Обязательное поле фамилия'),
-  dateBorn: yup.string().required('Обязательное поле дата'),
-  login: yup.string().required('Обязательное поле логин'),
-  password: yup
-    .string()
-    .min(8, 'Минимальное кол-во 8 символов')
-    .required('Обязательное поле пароль'),
-  passwordConfirm: yup
-    .string()
-    .oneOf([yup.ref('password'), null], 'Пароли не совпадают')
-    .required('Обязательное поле повторить пароль'),
-  subscribe: yup.bool().required('Обязательное поле подписка'),
-});
 
 export default (fastify, options, done) => {
   fastify.post('/signup', async (request, reply) => {
-    signupSchema.validateSync(request.body);
+    await signupSchema.validate(request.body, {
+      abortEarly: false,
+    });
     const { count } = await db.get(
       'Select count(*) as count from user where lower(login) = lower($login)',
       {
@@ -29,7 +16,7 @@ export default (fastify, options, done) => {
       }
     );
     if (count === 0) {
-      const { lastID } = await db.run(
+      await db.run(
         'INSERT INTO user (name,surname,date_born,login,password,subscribe) values ($name,$surname,$date_born,$login,$password,$subscribe)',
         {
           $name: request.body.name,
@@ -40,17 +27,48 @@ export default (fastify, options, done) => {
           $subscribe: request.body.subscribe,
         }
       );
-      const payload = {
-        exp: Math.floor(Date.now() / 1000) + SESSION_DURATION,
-        login: request.body.login,
-        id: lastID,
-      };
-      const token = fastify.jwt.sign(payload);
-      reply.send(response(token));
+      reply.send(response({ message: 'Пользователь создан' }));
     } else {
-      reply.send(response(null, 'Данное имя пользователя уже занято'));
+      reply.send(
+        response({
+          error: true,
+          message: 'Имя данного пользователя уже существует',
+        })
+      );
     }
   });
 
+  fastify.post('/signin', async (request, reply) => {
+    await signinSchema.validate(request.body, {
+      abortEarly: false,
+    });
+
+    const user = await db.get('SELECT * FROM user WHERE lower(login)=lower($login)', {
+      $login: request.body.login,
+    });
+    if (user.password === request.body.password) {
+      const payload = {
+        exp: Math.floor(Date.now() / 1000) + SESSION_DURATION,
+        login: user.login,
+        id: user.id,
+      };
+      const token = fastify.jwt.sign(payload);
+      reply.send(
+        response({
+          data: {
+            token,
+          },
+          message: 'Вы вошли в систему',
+        })
+      );
+    } else {
+      reply.send(
+        response({
+          error: true,
+          message: 'Пароли не совпадают',
+        })
+      );
+    }
+  });
   done();
 };

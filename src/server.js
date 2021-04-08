@@ -1,13 +1,31 @@
 import fastify from 'fastify';
 import cors from 'fastify-cors';
 import jwt from 'fastify-jwt';
+import { ValidationError } from 'yup';
 import files from './routes/files.js';
 import user from './routes/user.js';
+import book from './routes/book.js';
 import response from './utils/response.js';
 
 const server = fastify();
 server.setErrorHandler((error, request, reply) => {
-  reply.send(response(null, error.message));
+  if (error instanceof ValidationError) {
+    const errors = Object.fromEntries(error.inner.map(error => [error.path, error.message]));
+    reply.send(
+      response({
+        error: true,
+        data: errors,
+        message: 'Произошла ошибка валидации',
+      })
+    );
+  } else {
+    reply.send(
+      response({
+        error: true,
+        message: error.message,
+      })
+    );
+  }
 });
 server.setNotFoundHandler(
   {
@@ -15,7 +33,12 @@ server.setNotFoundHandler(
     preHandler: (request, reply, done) => done(),
   },
   (request, reply) => {
-    reply.send(response(null, 'Страница не найдена'));
+    reply.send(
+      response({
+        error: true,
+        message: 'Страница не найдена',
+      })
+    );
   }
 );
 
@@ -27,14 +50,20 @@ server.decorate('authentificate', async (request, reply) => {
   try {
     await request.jwtVerify();
   } catch (error) {
-    reply.send(response(null, error.message));
+    reply.send(
+      response({
+        error: true,
+        message: error.message,
+      })
+    );
   }
 });
 
 server.register(
-  (instance, options, done) => {
-    instance.register(files, { prefix: '/files' });
-    instance.register(user, { prefix: '/user' });
+  (fastify, options, done) => {
+    fastify.register(files, { prefix: '/files' });
+    fastify.register(user, { prefix: '/user' });
+    fastify.register(book, { prefix: '/book' });
 
     done();
   },

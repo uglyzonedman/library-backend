@@ -1,6 +1,6 @@
-const response = (data = null, message = null) => {
+const response = ({ data = null, message = null, error = false }) => {
   return {
-    success: data !== null && message === null,
+    success: !error,
     data,
     message,
   };

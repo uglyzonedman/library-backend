@@ -1,5 +1,5 @@
 import path from 'path';
-import { createReadStream, promises as fs } from 'fs';
+import { promises as fs, createReadStream } from 'fs';
 import mime from 'mime-types';
 
 export default (fastify, options, done) => {

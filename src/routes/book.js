@@ -1,9 +1,7 @@
-import { createReadStream, promises as fs } from 'fs';
-import path from 'path';
-import mime from 'mime-types';
 import db from '../database.js';
 import mapper from '../utils/mapper.js';
 import response from '../utils/response.js';
+import sendImage from '../utils/sendImage.js';
 
 export default (fastify, options, done) => {
   fastify.get('/:id', async (request, reply) => {
@@ -33,23 +31,7 @@ export default (fastify, options, done) => {
   });
 
   fastify.get('/:id/shell', async (request, reply) => {
-    try {
-      const { image } = await db.get('SELECT image FROM book WHERE id = $id', {
-        $id: request.params.id,
-      });
-      const filename = path.resolve(process.cwd(), 'src/assets', image);
-      const stats = await fs.stat(filename);
-
-      if (stats.isFile()) {
-        const stream = createReadStream(filename);
-
-        reply.type(mime.lookup(filename)).send(stream);
-      } else {
-        reply.send(null);
-      }
-    } catch (error) {
-      reply.send(null);
-    }
+    await sendImage('SELECT image FROM book WHERE id = $id', { $id: request.params.id }, reply);
   });
 
   done();

@@ -5,6 +5,7 @@ import { ValidationError } from 'yup';
 import files from './routes/files.js';
 import user from './routes/user.js';
 import book from './routes/book.js';
+import author from './routes/author.js';
 import response from './utils/response.js';
 
 const server = fastify();
@@ -66,6 +67,7 @@ server.register(
     fastify.register(files, { prefix: '/files' });
     fastify.register(user, { prefix: '/user' });
     fastify.register(book, { prefix: '/book' });
+    fastify.register(author, { prefix: '/author' });
 
     done();
   },

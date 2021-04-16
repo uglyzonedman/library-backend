@@ -4,6 +4,7 @@ import response from '../utils/response.js';
 import sendImage from '../utils/sendImage.js';
 
 export default (fastify, options, done) => {
+  //#region получение книги по id
   fastify.get('/:id', async (request, reply) => {
     try {
       const book = await db.get(
@@ -29,9 +30,34 @@ export default (fastify, options, done) => {
       throw new Error('Такой книги нет');
     }
   });
+  //#endregion
 
   fastify.get('/:id/shell', async (request, reply) => {
     await sendImage('SELECT image FROM book WHERE id = $id', { $id: request.params.id }, reply);
+  });
+
+  fastify.get('/random/:count?', async (request, reply) => {
+    const { count } = await db.get('SELECT count(*) AS count FROM book');
+    const books = await db.all(
+      `SELECT book.id, book.name, author.full_name AS author, book.rating
+      FROM book
+      INNER JOIN author ON book.author_id = author.id
+      ORDER BY RANDOM()
+      LIMIT $count`,
+      { $count: request.params['count?'] || 10 }
+    );
+
+    reply.send(
+      response({
+        data: {
+          total: count,
+          list: books.map(book => ({
+            ...mapper(book),
+            image: `/api/book/${book.id}/shell`,
+          })),
+        },
+      })
+    );
   });
 
   done();

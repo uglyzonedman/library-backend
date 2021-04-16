@@ -8,7 +8,7 @@ import book from './routes/book.js';
 import author from './routes/author.js';
 import response from './utils/response.js';
 
-const server = fastify();
+const server = fastify({ ignoreTrailingSlash: true });
 
 server.setErrorHandler((error, request, reply) => {
   if (error instanceof ValidationError) {
@@ -76,7 +76,7 @@ server.register(
 
 server.listen(process.env.PORT, process.env.HOSTNAME, (error, address) => {
   if (!error) {
-    console.log(`Сервер запущен по адресу ${address}`);
+    console.log(`Сервер запущен по адресу ${address}, PID: ${process.pid}`);
   }
 });
 

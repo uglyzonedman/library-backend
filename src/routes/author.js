@@ -45,5 +45,28 @@ export default (fastify, options, done) => {
   });
   // #endregion
 
+  fastify.get('/random/:count?', async (request, reply) => {
+    const { count } = await db.get('SELECT count(*) AS count FROM author');
+    const authors = await db.all(
+      `SELECT author.id, author.full_name
+      FROM author
+      ORDER BY RANDOM()
+      LIMIT $count`,
+      { $count: request.params['count?'] || 10 }
+    );
+
+    reply.send(
+      response({
+        data: {
+          total: count,
+          list: authors.map(author => ({
+            ...mapper(author),
+            image: `/api/author/${author.id}/portrait`,
+          })),
+        },
+      })
+    );
+  });
+
   done();
 };

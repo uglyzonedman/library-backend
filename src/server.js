@@ -7,6 +7,7 @@ import user from './routes/user.js';
 import book from './routes/book.js';
 import author from './routes/author.js';
 import genre from './routes/genre.js';
+import dictionary from './routes/dictionary.js';
 import response from './utils/response.js';
 
 const server = fastify({ ignoreTrailingSlash: true });
@@ -70,6 +71,7 @@ server.register(
     fastify.register(book, { prefix: '/book' });
     fastify.register(author, { prefix: '/author' });
     fastify.register(genre, { prefix: '/genre' });
+    fastify.register(dictionary, { prefix: '/dictionary' });
 
     done();
   },

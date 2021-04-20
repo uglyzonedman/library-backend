@@ -5,7 +5,8 @@ import db from '../database.js';
 
 const sendImage = async (query, params, reply) => {
   try {
-    const { image } = await db.get(query, params);
+    const result = await db.get(query, params);
+    const image = Object.values(result)[0] || null;
     const filename = path.resolve(process.cwd(), 'src/assets', image);
     const stats = await fs.stat(filename);
 

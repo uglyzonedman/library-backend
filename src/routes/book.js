@@ -36,6 +36,7 @@ export default (fastify, options, done) => {
     await sendImage('SELECT image FROM book WHERE id = $id', { $id: request.params.id }, reply);
   });
 
+  //#region  подучение 10 случайных книг на главную страницу
   fastify.get('/random/:count?', async (request, reply) => {
     const { count } = await db.get('SELECT count(*) AS count FROM book');
     const books = await db.all(
@@ -46,6 +47,7 @@ export default (fastify, options, done) => {
       LIMIT $count`,
       { $count: request.params['count?'] || 10 }
     );
+    //#endregion
 
     reply.send(
       response({

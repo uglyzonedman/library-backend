@@ -10,7 +10,12 @@ import genre from './routes/genre.js';
 import dictionary from './routes/dictionary.js';
 import response from './utils/response.js';
 
-const server = fastify({ ignoreTrailingSlash: true });
+const server = fastify({
+  ignoreTrailingSlash: true,
+  logger: {
+    prettyPrint: true,
+  },
+});
 
 server.setErrorHandler((error, request, reply) => {
   if (error instanceof ValidationError) {
@@ -23,6 +28,7 @@ server.setErrorHandler((error, request, reply) => {
       })
     );
   } else {
+    request.log.error(error);
     reply.send(
       response({
         error: true,
@@ -46,6 +52,13 @@ server.setNotFoundHandler(
     );
   }
 );
+
+// server.addHook('onRequest', (request, reply, done) => {
+//   console.log(`${request.method} ${request.url}`);
+//   console.log('Query:', JSON.stringify(request.query));
+//   console.log('Body:', JSON.stringify(request.body));
+//   done();
+// });
 
 server.register(cors);
 server.register(jwt, {
@@ -78,11 +91,7 @@ server.register(
   { prefix: '/api' }
 );
 
-server.listen(process.env.PORT, process.env.HOSTNAME, (error, address) => {
-  if (!error) {
-    console.log(`Сервер запущен по адресу ${address}, PID: ${process.pid}`);
-  }
-});
+server.listen(process.env.PORT, process.env.HOSTNAME);
 
 //fastify.get(
 // 	'/',

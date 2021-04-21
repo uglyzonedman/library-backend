@@ -13,6 +13,7 @@
     "fastify-cors": "^5.2.0",
     "fastify-jwt": "^2.4.0",
     "mime-types": "^2.1.29",
+    "pino-pretty": "^4.7.1",
     "sqlite": "^4.0.19",
     "sqlite3": "^5.0.2",
     "yup": "^0.32.9"

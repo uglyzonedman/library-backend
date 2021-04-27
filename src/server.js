@@ -8,6 +8,7 @@ import book from './routes/book.js';
 import author from './routes/author.js';
 import genre from './routes/genre.js';
 import dictionary from './routes/dictionary.js';
+import search from './routes/search.js';
 import response from './utils/response.js';
 
 const server = fastify({
@@ -85,6 +86,7 @@ server.register(
     fastify.register(author, { prefix: '/author' });
     fastify.register(genre, { prefix: '/genre' });
     fastify.register(dictionary, { prefix: '/dictionary' });
+    fastify.register(search, { prefix: '/search' });
 
     done();
   },

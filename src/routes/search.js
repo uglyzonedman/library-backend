@@ -5,6 +5,35 @@ import response from '../utils/response.js';
 const join = values => values.join(', ');
 
 export default (fastify, options, done) => {
+  //#region Простой поиск
+  fastify.get('/', async (request, reply) => {
+    const entries = await db.all(
+      `
+      SELECT
+        book.id,
+        book.name,
+        author.full_name AS author,
+        genre.name AS genre
+      FROM book
+      INNER JOIN author ON author.id = book.author_id
+      INNER JOIN genre ON genre.id = book.genre_id
+      WHERE book.name LIKE '%' || $needle || '%'
+    `,
+      {
+        $needle: request.query.needle || '',
+      }
+    );
+    reply.send(
+      response({
+        data: entries.map(entry => ({
+          ...entry,
+          image: `/api/book/${entry.id}/shell`,
+        })),
+      })
+    );
+  });
+  //#endregion
+
   //#region получение книг через поиск
   fastify.post('/books', async (request, reply) => {
     const conditions = [];
@@ -12,7 +41,7 @@ export default (fastify, options, done) => {
       authors = [],
       genres = [],
       ageLimits = [],
-      langueges = [],
+      languages = [],
       typeOfContent = [],
       publicationDateFrom = null,
       publicationDateTo = null,
@@ -27,8 +56,8 @@ export default (fastify, options, done) => {
     if (ageLimits.length > 0) {
       conditions.push(`age_limit_id IN (${join(ageLimits)})`);
     }
-    if (langueges.length > 0) {
-      conditions.push(`language_id IN (${join(langueges)})`);
+    if (languages.length > 0) {
+      conditions.push(`language_id IN (${join(languages)})`);
     }
     if (typeOfContent.length > 0) {
       conditions.push(`type_of_content IN (${join(typeOfContent)})`);

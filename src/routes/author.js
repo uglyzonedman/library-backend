@@ -1,7 +1,7 @@
 import db from '../database.js';
 import mapper from '../utils/mapper.js';
 import response from '../utils/response.js';
-import sendImage from '../utils/sendImage.js';
+import sendFile from '../utils/sendFile.js';
 
 export default (fastify, options, done) => {
   // #region Получение всех авторов
@@ -41,7 +41,7 @@ export default (fastify, options, done) => {
 
   // #region Получение портрета автора по ID
   fastify.get('/:id/portrait', async (request, reply) => {
-    await sendImage('SELECT image FROM author WHERE id = $id', { $id: request.params.id }, reply);
+    await sendFile('SELECT image FROM author WHERE id = $id', { $id: request.params.id }, reply);
   });
   // #endregion
 

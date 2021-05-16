@@ -3,11 +3,11 @@ import path from 'path';
 import mime from 'mime-types';
 import db from '../database.js';
 
-const sendImage = async (query, params, reply) => {
+const sendFile = async (query, params, reply) => {
   try {
     const result = await db.get(query, params);
-    const image = Object.values(result)[0] || null;
-    const filename = path.resolve(process.cwd(), 'src/assets', image);
+    const file = Object.values(result)[0] || null;
+    const filename = path.resolve(process.cwd(), 'src/assets', file);
     const stats = await fs.stat(filename);
 
     if (stats.isFile()) {
@@ -22,4 +22,4 @@ const sendImage = async (query, params, reply) => {
   }
 };
 
-export default sendImage;
+export default sendFile;

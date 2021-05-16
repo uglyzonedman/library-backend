@@ -107,10 +107,10 @@ export default (fastify, options, done) => {
   //#region получение типа контернта в блок фильрации
   fastify.get('/typeOfContent', async (request, reply) => {
     const typesOfContent = await db.all(
-      `SELECT id, type_of_content, count(*) AS books_count
+      `SELECT type_of_content AS id, type_of_content, count(*) AS books_count
       FROM book
       GROUP BY type_of_content
-      ORDER BY  count(*)
+      ORDER BY count(*)
       `
     );
 

@@ -3,7 +3,7 @@ import * as yup from 'yup';
 export const signupSchema = yup.object().shape({
   name: yup.string().required('Обязательное поле имя'),
   surname: yup.string().required('Обязательное поле фамилия'),
-  dateBorn: yup.string().required('Обязательное поле дата'),
+  dateBorn: yup.date().required('Обязательное поле дата'),
   login: yup.string().required('Обязательное поле логин'),
   password: yup
     .string()

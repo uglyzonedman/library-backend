@@ -1,5 +1,6 @@
 import db from '../database.js';
 import { signinSchema, signupSchema } from '../validations/user.js';
+import mapper from '../utils/mapper.js';
 import response from '../utils/response.js';
 
 const SESSION_DURATION = parseInt(process.env.SESSION_DURATION);
@@ -53,9 +54,12 @@ export default (fastify, options, done) => {
         id: user.id,
       };
       const token = fastify.jwt.sign(payload);
+      // eslint-disable-next-line no-unused-vars
+      const { password, ...userWithoutPassword } = user;
       reply.send(
         response({
           data: {
+            user: mapper(userWithoutPassword),
             token,
           },
           message: 'Вы вошли в систему',

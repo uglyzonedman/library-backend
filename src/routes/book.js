@@ -91,5 +91,30 @@ export default (fastify, options, done) => {
     );
   });
 
+  //#region  подучение 10 последние добавленных книг на главную страницу
+  fastify.get('/lastadded/:count?', async (request, reply) => {
+    const { count } = await db.get('SELECT count(*) AS count FROM book');
+    const books = await db.all(
+      `SELECT book.id, book.name, author.full_name AS author, book.rating
+      FROM book
+      INNER JOIN author ON book.author_id = author.id
+      ORDER BY book.id DESC
+        LIMIT $count`,
+      { $count: request.params['count?'] || 10 }
+    );
+    //#endregion
+    reply.send(
+      response({
+        data: {
+          total: count,
+          list: books.map(book => ({
+            ...mapper(book),
+            image: `/api/book/${book.id}/shell`,
+          })),
+        },
+      })
+    );
+  });
+
   done();
 };

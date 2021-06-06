@@ -17,5 +17,5 @@ if (cluster.isMaster) {
 }
 
 if (cluster.isWorker) {
-  await import('./worker.js');
+  await import('./server.js');
 }

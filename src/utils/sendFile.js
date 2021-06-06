@@ -3,6 +3,11 @@ import path from 'path';
 import mime from 'mime-types';
 import db from '../database.js';
 
+/**
+ * @param {string} query
+ * @param {Object<string, string>} params
+ * @param {import('fastify').FastifyReply} reply
+ */
 const sendFile = async (query, params, reply) => {
   try {
     const result = await db.get(query, params);

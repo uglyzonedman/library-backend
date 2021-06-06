@@ -2,17 +2,21 @@ import db from '../database.js';
 import mapper from '../utils/mapper.js';
 import response from '../utils/response.js';
 
-//#region получение 5 авторов в блок фильрации
-export default (fastify, options, done) => {
-  fastify.get('/authors', async (request, reply) => {
+/**
+ * @param {import('fastify').FastifyInstance} server
+ * @param {import('fastify').FastifyPluginOptions} options
+ * @param {(err?: Error) => void} done
+ */
+export default (server, options, done) => {
+  // #region Получение списка авторов
+  server.get('/authors', async (request, reply) => {
     const authors = await db.all(
-      `SELECT author.id, author.full_name, count(*) AS books_count
+      `SELECT author.id, author.full_name, COUNT(*) AS books_count
       FROM book
-      INNER JOIN author
-      ON author.id = book.author_id
+      INNER JOIN author ON author.id = book.author_id
       WHERE author.full_name LIKE '%' || $author || '%'
       GROUP BY author.id
-      ORDER BY  count(*) DESC
+      ORDER BY COUNT(*) DESC
       LIMIT $count`,
       { $author: request.query.author || '', $count: request.query.count || 5 }
     );
@@ -23,18 +27,18 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение 5 жанров в блок фильтрации
-  fastify.get('/genre', async (request, reply) => {
+  // #region Получение списка жанров
+  server.get('/genre', async (request, reply) => {
     const genres = await db.all(
-      `SELECT genre.id, genre.name, count(*) AS books_count
+      `SELECT genre.id, genre.name, COUNT(*) AS books_count
       FROM book
       INNER JOIN genre
       ON genre.id = book.genre_id
       WHERE genre.name LIKE '%' || $genre || '%'
       GROUP BY genre.id
-      ORDER BY  count(*) DESC
+      ORDER BY  COUNT(*) DESC
       LIMIT $count`,
       { $genre: request.query.genre || '', $count: request.query.count || 5 }
     );
@@ -45,18 +49,17 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение 5 языков в блок фильтрации
-  fastify.get('/languages', async (request, reply) => {
+  // #region Получение списка языков
+  server.get('/languages', async (request, reply) => {
     const languages = await db.all(
-      `SELECT language.id, language.name, count(*) AS  books_count
+      `SELECT language.id, language.name, COUNT(*) AS  books_count
       FROM book
-      INNER JOIN language
-      ON language.id = book.language_id
+      INNER JOIN language ON language.id = book.language_id
       WHERE language.name LIKE '%' || $language || '%'
       GROUP BY language.id
-      ORDER BY count(*) DESC
+      ORDER BY COUNT(*) DESC
       LIMIT $count`,
       { $language: request.query.language || '', $count: request.query.count || 5 }
     );
@@ -67,15 +70,14 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение возрастных ограничений в блок фильтрации
-  fastify.get('/ageLimit', async (request, reply) => {
+  // #region Получение списка возрастных ограничений
+  server.get('/ageLimit', async (request, reply) => {
     const ageLimits = await db.all(
-      `SELECT age_limit.id, age_limit.age, count(*) AS books_count
+      `SELECT age_limit.id, age_limit.age, COUNT(*) AS books_count
       FROM book
-      INNER JOIN age_limit
-      ON age_limit.id = book.age_limit_id
+      INNER JOIN age_limit ON age_limit.id = book.age_limit_id
       GROUP BY age_limit.id`
     );
 
@@ -85,10 +87,10 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение минимальной и максимальной даты публикации в блок фильтрации
-  fastify.get('/yearOfPublicaton', async (request, reply) => {
+  // #region Получение минимальной и максимальной дат публикации книг
+  server.get('/yearOfPublicaton', async (request, reply) => {
     const yearOfPublicaton = await db.get(
       `SELECT
        MIN(substr (publication_date, 1, 4)) AS min,
@@ -102,16 +104,15 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение типа контернта в блок фильрации
-  fastify.get('/typeOfContent', async (request, reply) => {
+  // #region Получение списка типов контента
+  server.get('/typeOfContent', async (request, reply) => {
     const typesOfContent = await db.all(
-      `SELECT type_of_content AS id, type_of_content, count(*) AS books_count
+      `SELECT type_of_content AS id, type_of_content, COUNT(*) AS books_count
       FROM book
       GROUP BY type_of_content
-      ORDER BY count(*)
-      `
+      ORDER BY COUNT(*)`
     );
 
     reply.send(
@@ -120,7 +121,7 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
   done();
 };

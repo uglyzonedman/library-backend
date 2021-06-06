@@ -4,12 +4,16 @@ import response from '../utils/response.js';
 
 const join = values => values.join(', ');
 
-export default (fastify, options, done) => {
-  //#region Простой поиск
-  fastify.get('/', async (request, reply) => {
+/**
+ * @param {import('fastify').FastifyInstance} server
+ * @param {import('fastify').FastifyPluginOptions} options
+ * @param {(err?: Error) => void} done
+ */
+export default (server, options, done) => {
+  // #region Простой поиск книг
+  server.get('/', async (request, reply) => {
     const entries = await db.all(
-      `
-      SELECT
+      `SELECT
         book.id,
         book.name,
         author.full_name AS author,
@@ -17,11 +21,8 @@ export default (fastify, options, done) => {
       FROM book
       INNER JOIN author ON author.id = book.author_id
       INNER JOIN genre ON genre.id = book.genre_id
-      WHERE book.name LIKE '%' || $needle || '%'
-    `,
-      {
-        $needle: request.query.needle || '',
-      }
+      WHERE book.name LIKE '%' || $needle || '%'`,
+      { $needle: request.query.needle || '' }
     );
     reply.send(
       response({
@@ -32,10 +33,10 @@ export default (fastify, options, done) => {
       })
     );
   });
-  //#endregion
+  // #endregion
 
-  //#region получение книг через поиск
-  fastify.post('/books', async (request, reply) => {
+  // #region Поиск книг с фильтрацией
+  server.post('/books', async (request, reply) => {
     const conditions = [];
     const {
       authors = [],
@@ -86,22 +87,17 @@ export default (fastify, options, done) => {
         book.number_of_pages,
         book.description
       FROM book
-      INNER JOIN shell
-        ON book.shell_id = shell.id
-      INNER JOIN author
-        ON book.author_id = author.id
-      INNER JOIN genre
-        ON book.genre_id = genre.id
-      INNER JOIN language
-        ON book.language_id = language.id
-      INNER JOIN age_limit
-        ON book.age_limit_id = age_limit.id
+      INNER JOIN shell ON book.shell_id = shell.id
+      INNER JOIN author ON book.author_id = author.id
+      INNER JOIN genre ON book.genre_id = genre.id
+      INNER JOIN language ON book.language_id = language.id
+      INNER JOIN age_limit ON book.age_limit_id = age_limit.id
     `;
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    const { total } = await db.get(`SELECT count(*) AS total FROM (${query})`);
+    const { total } = await db.get(`SELECT COUNT(*) AS total FROM (${query})`);
 
     query += ' LIMIT $count OFFSET $offset';
     const count = parseInt(request.query.count) || 10;
@@ -111,19 +107,30 @@ export default (fastify, options, done) => {
       $offset: page * count,
     });
 
+    let favoritedBooks = [];
+
+    if (request.user) {
+      const { favorited } = await db.get('SELECT favorited FROM user WHERE id = $id', {
+        $id: request.user.id,
+      });
+
+      favoritedBooks = JSON.parse(favorited);
+    }
+
     reply.send(
       response({
         data: {
           total,
           list: books.map(book => ({
             ...mapper(book),
+            favorited: favoritedBooks.includes(book.id),
             image: `/api/book/${book.id}/shell`,
           })),
         },
       })
     );
   });
-  //#endregion
+  // #endregion
 
   done();
 };

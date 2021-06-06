@@ -2,20 +2,21 @@ import fastify from 'fastify';
 import cors from 'fastify-cors';
 import jwt from 'fastify-jwt';
 import { ValidationError } from 'yup';
-import files from './routes/files.js';
 import user from './routes/user.js';
 import book from './routes/book.js';
 import author from './routes/author.js';
 import genre from './routes/genre.js';
 import dictionary from './routes/dictionary.js';
 import search from './routes/search.js';
+import profile from './routes/profile.js';
+import action from './routes/action.js';
 import response from './utils/response.js';
 
 const server = fastify({
   ignoreTrailingSlash: true,
-  logger: {
-    prettyPrint: true,
-  },
+  // logger: {
+  //   prettyPrint: true,
+  // },
 });
 
 server.setErrorHandler((error, request, reply) => {
@@ -54,39 +55,38 @@ server.setNotFoundHandler(
   }
 );
 
-// server.addHook('onRequest', (request, reply, done) => {
-//   console.log(`${request.method} ${request.url}`);
-//   console.log('Query:', JSON.stringify(request.query));
-//   console.log('Body:', JSON.stringify(request.body));
-//   done();
-// });
-
 server.register(cors);
 server.register(jwt, {
   secret: process.env.SECRET,
 });
-server.decorate('authentificate', async (request, reply) => {
-  try {
-    await request.jwtVerify();
-  } catch (error) {
-    reply.send(
-      response({
-        error: true,
-        message: error.message,
-      })
-    );
-  }
-});
 
 server.register(
-  (fastify, options, done) => {
-    fastify.register(files, { prefix: '/files' });
-    fastify.register(user, { prefix: '/user' });
-    fastify.register(book, { prefix: '/book' });
-    fastify.register(author, { prefix: '/author' });
-    fastify.register(genre, { prefix: '/genre' });
-    fastify.register(dictionary, { prefix: '/dictionary' });
-    fastify.register(search, { prefix: '/search' });
+  (server, options, done) => {
+    server.register((server, options, done) => {
+      server.addHook('onRequest', async request => {
+        try {
+          await request.jwtVerify();
+        } catch (error) {} // eslint-disable-line no-empty
+      });
+
+      server.register(user, { prefix: '/user' });
+      server.register(book, { prefix: '/book' });
+      server.register(author, { prefix: '/author' });
+      server.register(genre, { prefix: '/genre' });
+      server.register(dictionary, { prefix: '/dictionary' });
+      server.register(search, { prefix: '/search' });
+
+      done();
+    });
+
+    server.register((server, options, done) => {
+      server.addHook('onRequest', async request => await request.jwtVerify());
+
+      server.register(profile, { prefix: '/profile' });
+      server.register(action, { prefix: '/action' });
+
+      done();
+    });
 
     done();
   },
@@ -94,13 +94,3 @@ server.register(
 );
 
 server.listen(process.env.PORT, process.env.HOSTNAME);
-
-//fastify.get(
-// 	'/',
-// 	{
-// 	  preValidation: [fastify.authentificate],
-// 	},
-// 	(request, reply) => {
-// 	  reply.send(request.user);
-// 	}
-//  );

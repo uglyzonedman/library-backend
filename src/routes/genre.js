@@ -2,9 +2,14 @@ import db from '../database.js';
 import mapper from '../utils/mapper.js';
 import response from '../utils/response.js';
 
-export default (fastify, options, done) => {
+/**
+ * @param {import('fastify').FastifyInstance} server
+ * @param {import('fastify').FastifyPluginOptions} options
+ * @param {(err?: Error) => void} done
+ */
+export default (server, options, done) => {
   // #region Получение всех жанров
-  fastify.get('/', async (request, reply) => {
+  server.get('/', async (request, reply) => {
     const genres = await db.all(`SELECT * FROM genre ORDER BY name ASC`);
 
     reply.send(
@@ -16,7 +21,7 @@ export default (fastify, options, done) => {
   // #endregion
 
   // #region Получение жанра по ID
-  fastify.get('/:id', async (request, reply) => {
+  server.get('/:id', async (request, reply) => {
     try {
       const genre = await db.get(
         `SELECT * FROM genre

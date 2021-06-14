@@ -14,9 +14,9 @@ import response from './utils/response.js';
 
 const server = fastify({
   ignoreTrailingSlash: true,
-  // logger: {
-  //   prettyPrint: true,
-  // },
+  logger: {
+    prettyPrint: true,
+  },
 });
 
 server.setErrorHandler((error, request, reply) => {
